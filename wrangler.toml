@@ -1,3 +1,7 @@
 name = "tel-prompt"
-pages_build_output_dir = "public"
 compatibility_date = "2026-11-01"
+
+# Static site served by Cloudflare Workers (static assets). No Worker script needed.
+[assets]
+directory = "./public"
+not_found_handling = "404-page"

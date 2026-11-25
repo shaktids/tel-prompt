@@ -1,6 +1,6 @@
 # Teleprompter
 
-A browser-based teleprompter. It's a static site with no build step and no dependencies, made for **Cloudflare Pages**.
+A browser-based teleprompter. It's a static site with no build step and no dependencies, made for **Cloudflare** (Workers static assets).
 
 ## Features
 
@@ -36,11 +36,11 @@ public/            ← deployed as-is
   index.html
   styles.css
   app.js
-  _headers         ← Cloudflare Pages security & cache headers
+  _headers         ← security & cache headers
   404.html
   favicon.svg
   manifest.webmanifest
-wrangler.toml      ← pages_build_output_dir = "public"
+wrangler.toml      ← Workers static assets config (directory = public)
 ```
 
 ## Run locally
@@ -57,26 +57,24 @@ You can also preview with Cloudflare's runtime, which applies `_headers`:
 npx wrangler pages dev public
 ```
 
-## Deploy to Cloudflare Pages
+## Deploy to Cloudflare
+
+`wrangler.toml` configures the site as a Cloudflare Worker that serves the static files in `public/`. There's no Worker script. `_headers` and `404.html` still apply.
 
 ### Option A: Git integration (recommended)
 
-1. Push this repo to GitHub or GitLab.
-2. In the Cloudflare dashboard, go to **Workers & Pages → Create → Pages → Connect to Git** and pick the repo.
-3. Build settings:
-   - **Framework preset:** None
-   - **Build command:** *(leave empty)*
-   - **Build output directory:** `public`
-4. Click **Save and Deploy**. Every push to `main` redeploys the site, and other branches get preview URLs.
+1. In the Cloudflare dashboard, go to **Workers & Pages → Create → Import a repository** and pick this repo.
+2. Leave the build command empty. The deploy command is `npx wrangler deploy`, which is the default.
+3. Deploy. Every push to `main` redeploys the site.
 
-### Option B: Direct upload with Wrangler
+### Option B: Deploy from your machine
 
 ```powershell
 npx wrangler login
 ```
 
 ```powershell
-npx wrangler pages deploy public --project-name tel-prompt
+npx wrangler deploy
 ```
 
-To use a custom domain, open the Pages project and go to **Custom domains → Set up a domain**.
+To use a custom domain, open the Worker and go to **Settings → Domains & Routes → Add → Custom domain**.
