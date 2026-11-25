@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Teleprompter</title>
+  <meta name="description" content="A fast, free, browser-based teleprompter. Paste your script, set the speed, and read smoothly — with mirror mode, reading guide and keyboard controls.">
+  <meta name="theme-color" content="#0b0d12">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- ============ EDITOR VIEW ============ -->
+  <main id="editorView" class="editor-view">
+    <header class="topbar">
+      <div class="brand">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="6" width="26" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M9 12h14M9 16h10M9 20h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        <span>Teleprompter</span>
+      </div>
+      <div class="topbar-actions">
+        <label class="btn ghost" title="Open a .txt or .md file">
+          <input type="file" id="fileInput" accept=".txt,.md,text/plain" hidden>
+          Open file
+        </label>
+        <button class="btn ghost" id="clearBtn" type="button">Clear</button>
+        <button class="btn primary" id="startBtn" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+          Start prompting
+        </button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <section class="script-pane">
+        <textarea id="scriptInput" spellcheck="true" placeholder="Paste or type your script here…"></textarea>
+        <div class="script-meta">
+          <span id="wordCount">0 words</span>
+          <span id="readTime">~0:00 at 150 wpm</span>
+          <span class="hint">Tip: lines in [brackets] show as cues, e.g. [PAUSE]</span>
+        </div>
+      </section>
+
+      <aside class="settings-pane" aria-label="Settings">
+        <h2>Display</h2>
+        <div class="field">
+          <label for="fontSize">Font size <output id="fontSizeOut"></output></label>
+          <input type="range" id="fontSize" min="24" max="160" step="2">
+        </div>
+        <div class="field">
+          <label for="lineHeight">Line spacing <output id="lineHeightOut"></output></label>
+          <input type="range" id="lineHeight" min="1" max="2.4" step="0.05">
+        </div>
+        <div class="field">
+          <label for="margin">Side margins <output id="marginOut"></output></label>
+          <input type="range" id="margin" min="0" max="35" step="1">
+        </div>
+        <div class="field">
+          <label for="fontFamily">Font</label>
+          <select id="fontFamily">
+            <option value="sans">Sans-serif</option>
+            <option value="serif">Serif</option>
+            <option value="mono">Monospace</option>
+            <option value="rounded">Rounded</option>
+          </select>
+        </div>
+        <div class="field row">
+          <label for="align">Alignment</label>
+          <div class="seg" id="align" role="radiogroup">
+            <button type="button" data-value="left" role="radio">Left</button>
+            <button type="button" data-value="center" role="radio">Center</button>
+          </div>
+        </div>
+        <div class="field row">
+          <label>Theme</label>
+          <div class="seg" id="theme" role="radiogroup">
+            <button type="button" data-value="dark" role="radio">White on black</button>
+            <button type="button" data-value="light" role="radio">Black on white</button>
+            <button type="button" data-value="amber" role="radio">Amber</button>
+          </div>
+        </div>
+
+        <h2>Playback</h2>
+        <div class="field">
+          <label for="speed">Scroll speed <output id="speedOut"></output></label>
+          <input type="range" id="speed" min="1" max="30" step="0.5">
+        </div>
+        <div class="field">
+          <label for="guidePos">Reading line position <output id="guidePosOut"></output></label>
+          <input type="range" id="guidePos" min="10" max="70" step="1">
+        </div>
+        <div class="field">
+          <label for="countdown">Countdown <output id="countdownOut"></output></label>
+          <input type="range" id="countdown" min="0" max="10" step="1">
+        </div>
+
+        <h2>Options</h2>
+        <label class="check"><input type="checkbox" id="mirrorX"> Mirror horizontally (for beam-splitter glass)</label>
+        <label class="check"><input type="checkbox" id="mirrorY"> Flip vertically</label>
+        <label class="check"><input type="checkbox" id="showGuide"> Show reading guide</label>
+        <label class="check"><input type="checkbox" id="dimOthers"> Dim text away from reading line</label>
+        <label class="check"><input type="checkbox" id="autoFullscreen"> Go fullscreen on start</label>
+
+        <details class="shortcuts">
+          <summary>Keyboard shortcuts</summary>
+          <dl>
+            <dt><kbd>Space</kbd></dt><dd>Play / pause</dd>
+            <dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Speed up / slow down</dd>
+            <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Jump back / forward</dd>
+            <dt><kbd>+</kbd> <kbd>−</kbd></dt><dd>Bigger / smaller text</dd>
+            <dt><kbd>M</kbd></dt><dd>Toggle mirror</dd>
+            <dt><kbd>F</kbd></dt><dd>Toggle fullscreen</dd>
+            <dt><kbd>Home</kbd></dt><dd>Back to start</dd>
+            <dt><kbd>Esc</kbd></dt><dd>Exit to editor</dd>
+          </dl>
+          <p>Mouse wheel or touch-drag scrolls manually.</p>
+        </details>
+      </aside>
+    </div>
+  </main>
+
+  <!-- ============ PROMPTER VIEW ============ -->
+  <section id="prompterView" class="prompter-view" hidden aria-label="Teleprompter">
+    <div id="stage" class="stage">
+      <div id="scroller" class="scroller">
+        <div id="prompterText" class="prompter-text"></div>
+      </div>
+    </div>
+
+    <div id="guide" class="guide" aria-hidden="true">
+      <span class="guide-arrow left"></span>
+      <span class="guide-arrow right"></span>
+    </div>
+    <div id="fadeTop" class="fade top" aria-hidden="true"></div>
+    <div id="fadeBottom" class="fade bottom" aria-hidden="true"></div>
+
+    <div id="countdownOverlay" class="countdown" hidden><span></span></div>
+
+    <div class="progress" aria-hidden="true"><div id="progressBar"></div></div>
+
+    <div id="controls" class="controls">
+      <button class="icon-btn" id="exitBtn" type="button" title="Back to editor (Esc)">
+        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="icon-btn" id="restartBtn" type="button" title="Back to start (Home)">
+        <svg viewBox="0 0 24 24"><path d="M6 5v14M18 6l-9 6 9 6z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="icon-btn play" id="playBtn" type="button" title="Play / pause (Space)">
+        <svg class="i-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+        <svg class="i-pause" viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>
+      </button>
+      <div class="ctl-group" title="Speed (↑ / ↓)">
+        <button class="icon-btn sm" id="slowerBtn" type="button" aria-label="Slower">−</button>
+        <span class="ctl-label"><small>Speed</small><b id="speedLive"></b></span>
+        <button class="icon-btn sm" id="fasterBtn" type="button" aria-label="Faster">+</button>
+      </div>
+      <div class="ctl-group" title="Text size (+ / −)">
+        <button class="icon-btn sm" id="smallerBtn" type="button" aria-label="Smaller text">A−</button>
+        <span class="ctl-label"><small>Size</small><b id="sizeLive"></b></span>
+        <button class="icon-btn sm" id="biggerBtn" type="button" aria-label="Bigger text">A+</button>
+      </div>
+      <span class="ctl-label time"><small>Remaining</small><b id="timeLeft">0:00</b></span>
+      <button class="icon-btn" id="mirrorBtn" type="button" title="Mirror (M)">
+        <svg viewBox="0 0 24 24"><path d="M12 3v18M9 7L3 12l6 5zM15 7l6 5-6 5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="icon-btn" id="fullscreenBtn" type="button" title="Fullscreen (F)">
+        <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
